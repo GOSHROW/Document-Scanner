@@ -1,8 +1,8 @@
 import cv2
-from tkinter import Tk
-from tkinter import filedialog
+from tkinter import Tk, filedialog, Label, Button
 import numpy as np
-import imutils
+from imutils import grab_contours
+from PIL import Image, ImageTk
 
 class Scanner:   
     
@@ -32,7 +32,7 @@ class Scanner:
     def Contours(self):
         img, edges, ratio = self.EdgeDetector()
         contours = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-        contours = imutils.grab_contours(contours)
+        contours = grab_contours(contours)
         contours = sorted(contours, key = cv2.contourArea, reverse = True)
         c = contours[0]
         M = cv2.moments(c)
@@ -40,7 +40,7 @@ class Scanner:
         cY = int(M["m01"] / (M["m00"] + 1))
         return (img, contours, c, ratio)
         
-    def order_points(self, pts):
+    def getPoints(self, pts):
         rect = np.zeros((4, 2), dtype = "float32")
         s = pts.sum(axis = 1)
         rect[2] = pts[np.argmax(s)]
@@ -50,8 +50,27 @@ class Scanner:
         rect[3] = pts[np.argmax(diff)]
         return rect
 
-    def four_point_transform(self, image, pts):
-        rect = self.order_points(pts)
+    def getUserAgree(self, image, rect):
+        window = Tk()   
+        window.title("Goshrow Scanner")
+        window.geometry('500x600')
+        window.configure(background = '#5792CF', borderwidth = '5px')
+        image = cv2.resize(image, (500, 500))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(image)
+        photo = ImageTk.PhotoImage(img)
+        panel = Label(window, image=photo).grid()
+        def next() :
+            window.destroy()
+        button = Button(window, text = "Next", command = next).grid()
+        window.mainloop()
+        return rect
+
+
+
+    def changePerspective(self, image, pts):
+        rect = self.getPoints(pts)
+        rect = self.getUserAgree(image, rect)
         (tl, tr, br, bl) = rect
         widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
         widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))   
@@ -75,10 +94,14 @@ class Scanner:
             cv2.drawContours(copied, contours, -1, 255, 3)
         c = max(contours, key = cv2.contourArea)
         approx = cv2.approxPolyDP(c, 0.1*cv2.arcLength(c, True), True)
-
-        warped = self.four_point_transform(img, approx.sum(axis = 1))
+        warped = self.changePerspective(img, approx.sum(axis = 1))
         warped = cv2.resize(warped, (int(500 * ratio[0]), int(500 * ratio[1])))
-        cv2.imshow("", warped)
-        cv2.waitKey(0)
+        return warped
 
-Scanner().Warp()
+    def getPDF(self):
+        image = self.Warp()
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(image)
+        img.save(r'./newScan.pdf')
+
+Scanner().getPDF()
