@@ -55,8 +55,7 @@ class Scanner:
         rect[3] = pts[np.argmax(diff)]
         return rect
 
-    def changePerspective(self, image, pts):
-        rect = self.getPoints(pts)
+    def agree(self, image, pts, rect):
         print(rect)
         r = rect
         print(r)
@@ -64,13 +63,28 @@ class Scanner:
         for i in rect:
             for j in i:
                 rectStr += str(j) + ' '
+        
         command = "javac Validate.java; java Validate " + self.path + " " + rectStr
         retVal = subprocess.check_output(command, shell = True) 
         retVal = retVal.decode("utf-8")
         retVal = [float(x) for x in retVal.split()]
-        rect = np.append([[retVal[0], retVal[1]], [retVal[2], retVal[3]]], [[retVal[4], retVal[5]], [retVal[6], retVal[7]]], axis=0)
-        print(rect)
-        print(rect == r)
+        print(retVal, type(retVal))
+        # rect = list([[int(retVal[0]), int(retVal[1])], [int(retVal[2]), int(retVal[3])]], [[int(retVal[4]), int(retVal[5])], [int(retVal[6]), int(retVal[7])]])
+        ret = np.empty([4, 2], dtype=float)
+        ret[0][0] = retVal[0]
+        ret[0][1] = retVal[1]
+        ret[1][0] = retVal[2]
+        ret[1][1] = retVal[3]
+        ret[2][0] = retVal[4]
+        ret[2][1] = retVal[5]
+        ret[3][0] = retVal[6]
+        ret[3][1] = retVal[7]
+        print(ret == r)
+        return ret
+
+    def changePerspective(self, image, pts):
+        rect = self.getPoints(pts)
+        rectValidated = self.agree(image, pts, rect)
         (tl, tr, br, bl) = rect
         widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
         widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))   
