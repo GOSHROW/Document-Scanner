@@ -16,29 +16,36 @@ class GUI{
         this.rect = rect;
     }
 
-    public class ImageCanvas extends Canvas {
+    class CustomPanel extends JPanel
+    {
+        private BufferedImage image;
 
-        private BufferedImage img;
-
-        public ImageCanvas() {
-            try {
-                img = ImageIO.read(new File(path));
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        public CustomPanel()
+        {
+            setOpaque(true);
+            setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
+            try
+            {
+                image = ImageIO.read(new File(path));
+            }
+            catch(IOException ioe)
+            {
+                System.out.println("Unable to fetch image.");
+                ioe.printStackTrace();
             }
         }
+
         @Override
-        public Dimension getPreferredSize() {
-            return img == null ? new Dimension(200, 200) : new Dimension(img.getWidth(), img.getHeight());
+        public Dimension getPreferredSize()
+        {
+            return (new Dimension(image.getWidth(), image.getHeight()));
         }
+
         @Override
-        public void paint(Graphics g) {
-            super.paint(g);
-            if (img != null) {
-                int x = (getWidth() - img.getWidth()) / 2;
-                int y = (getHeight() - img.getHeight()) / 2;
-                g.drawImage(img, x, y, this);
-            }
+        protected void paintComponent(Graphics g)
+        {
+            super.paintComponent(g);
+            g.drawImage(image, 0, 0, this);
         }
     }
     
@@ -55,10 +62,11 @@ class GUI{
         f.setTitle("GOSHROW Document Scanner");
         f.setLocationRelativeTo(null);
         f.setVisible(true); 
-        f.getContentPane().add(new ImageCanvas());
+        f.setContentPane(new CustomPanel());
+        f.pack();
         Button button = new Button("Submit"); 
-        f.getContentPane().add(button); 
-        f.setSize(500, 500);
+        f.add(button);
+        f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
         f.validate();
@@ -77,6 +85,9 @@ class Validate {
         }
         GUI gui = new GUI(path, rect);
         float []ret = gui.getUserPoints();
+        for (int i = 0; i < ret.length; i++) {
+            System.out.print(ret[i] + " ");
+        }
         for (int i = 0; i < rect.length; i++) {
             System.out.print(rect[i] + " ");
         }

@@ -65,6 +65,7 @@ class Scanner:
                 rectStr += str(j) + ' '
         
         command = "javac Validate.java; java Validate " + self.path + " " + rectStr
+        print(command)
         retVal = subprocess.check_output(command, shell = True) 
         retVal = retVal.decode("utf-8")
         retVal = [float(x) for x in retVal.split()]
