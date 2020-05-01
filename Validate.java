@@ -6,6 +6,17 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.*;
 
+class PolyPanel extends JPanel {
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Polygon p = new Polygon();
+        for (int i = 0; i < 5; i++) p.addPoint((int) (
+            100 + 50 * Math.cos(i * 2 * Math.PI / 5)),(int) (100 + 50 * Math.sin(
+            i * 2 * Math.PI / 5)));
+        g.drawPolygon(p);
+    }
+}
+
 class GUI{
 
     String path;
@@ -57,13 +68,16 @@ class GUI{
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
             }
-        });  
-        f.setLayout(null);  
+        });
+        JPanel mainPanel = new JPanel();
         f.setTitle("GOSHROW Document Scanner");
         f.setLocationRelativeTo(null);
         f.setVisible(true); 
-        f.setContentPane(new CustomPanel());
-        f.pack();
+        // f.setContentPane(new CustomPanel());
+        mainPanel.add(new CustomPanel());
+        mainPanel.add(new PolyPanel());
+        // f.add(new PolyPanel());
+        f.add(mainPanel);
         Button button = new Button("Submit"); 
         f.add(button);
         f.pack();
